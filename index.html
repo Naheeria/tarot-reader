@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>타로 리더</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#F2F2F7;
+    --surface:#FFFFFF;
+    --surface-hover:#F9F9FB;
+    --border:#E5E5EA;
+    --border-focus:#B8B0E8;
+    --text:#1D1D1F;
+    --sub:#6E6E73;
+    --muted:#AEAEB2;
+    --accent:#7C6DC7;
+    --accent-light:#EEEAFC;
+    --accent-dark:#5E4FA2;
+    --danger:#FF3B30;
+    --danger-bg:#FFF0EF;
+    --success:#34C759;
+    --success-bg:#EDFCF2;
+    --r:16px;
+    --rs:12px;
+    --shadow:0 1px 4px rgba(0,0,0,0.03),0 4px 16px rgba(0,0,0,0.04);
+    --shadow-lg:0 2px 8px rgba(0,0,0,0.05),0 12px 32px rgba(0,0,0,0.06);
+    --font-body:'Noto Sans KR',system-ui,-apple-system,sans-serif;
+    --font-display:'Cormorant Garamond','Noto Sans KR',serif;
+  }
+  html{font-size:16px}
+  body{
+    font-family:var(--font-body);
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .app-shell{
+    max-width:560px;
+    margin:0 auto;
+    padding:0 20px 60px;
+    min-height:100vh;
+  }
+
+  /* ── Header ── */
+  .header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:28px 0 12px;
+    position:sticky;top:0;background:var(--bg);z-index:10;
+  }
+  .header-side{min-width:80px}
+  .header-side:last-child{text-align:right}
+  .header h1{
+    font-family:var(--font-display);
+    font-size:26px;font-weight:600;letter-spacing:-0.3px;
+    color:var(--text);
+  }
+  .nav-btn{
+    background:none;border:none;font-size:14px;font-weight:500;
+    color:var(--accent);cursor:pointer;padding:8px 12px;
+    border-radius:var(--rs);font-family:var(--font-body);
+    transition:background .15s;
+  }
+  .nav-btn:hover{background:var(--accent-light)}
+  .nav-btn:disabled{color:var(--muted);cursor:not-allowed}
+  .nav-btn--danger{color:var(--danger)}
+  .nav-btn--danger:hover{background:var(--danger-bg)}
+  .badge{
+    font-size:11px;background:var(--accent);color:#fff;
+    border-radius:10px;padding:2px 7px;margin-left:4px;
+    font-weight:600;
+  }
+
+  /* ── Card ── */
+  .card{
+    background:var(--surface);border-radius:var(--r);
+    padding:22px;margin-bottom:14px;
+    box-shadow:var(--shadow);border:0.5px solid var(--border);
+  }
+  .card--flush{padding:16px 20px}
+  .label{
+    font-size:12px;font-weight:600;color:var(--sub);
+    text-transform:uppercase;letter-spacing:0.6px;
+    margin-bottom:10px;display:block;
+  }
+
+  /* ── Chips ── */
+  .chip-group{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    padding:9px 18px;font-size:14px;font-weight:500;
+    font-family:var(--font-body);border-radius:22px;
+    cursor:pointer;transition:all .2s;
+    border:1.5px solid var(--border);
+    background:var(--surface);color:var(--sub);
+  }
+  .chip:hover{border-color:var(--border-focus);color:var(--accent-dark)}
+  .chip--active{
+    border-color:var(--accent);background:var(--accent-light);
+    color:var(--accent-dark);
+  }
+  .chip-desc{margin-top:8px;font-size:13px;color:var(--muted)}
+
+  /* ── Inputs ── */
+  .input,.textarea{
+    width:100%;padding:13px 16px;font-size:15px;
+    font-family:var(--font-body);line-height:1.6;
+    border:1.5px solid var(--border);border-radius:var(--rs);
+    background:var(--bg);color:var(--text);outline:none;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .input:focus,.textarea:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(124,109,199,0.1);
+  }
+  .textarea{min-height:200px;resize:vertical}
+  .input-footer{
+    display:flex;justify-content:flex-end;
+    margin-top:6px;font-size:12px;color:var(--muted);
+  }
+
+  /* ── Buttons ── */
+  .btn-primary{
+    width:100%;padding:16px;font-size:16px;font-weight:600;
+    font-family:var(--font-body);color:#FFF;border:none;
+    border-radius:var(--r);cursor:pointer;margin-top:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+    box-shadow:0 4px 18px rgba(124,109,199,0.3);
+    transition:all .2s;
+  }
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,109,199,0.35)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-primary:disabled{
+    background:var(--muted);box-shadow:none;
+    cursor:not-allowed;transform:none;
+  }
+  .btn-secondary{
+    padding:12px 22px;font-size:15px;font-weight:500;
+    font-family:var(--font-body);color:var(--accent);
+    background:var(--accent-light);border:none;
+    border-radius:var(--rs);cursor:pointer;
+    transition:background .15s;white-space:nowrap;
+  }
+  .btn-secondary:hover{background:#e0d9f8}
+  .btn-secondary:disabled{
+    color:var(--muted);background:rgba(174,174,178,0.1);
+    cursor:not-allowed;
+  }
+  .btn-row{display:flex;gap:10px;margin-top:10px}
+  .btn-row .btn-primary{flex:1}
+
+  /* ── API Key row ── */
+  .api-key-row{display:flex;gap:8px;align-items:center}
+  .api-key-row .input{flex:1;font-size:14px;padding:10px 14px;font-family:monospace}
+  .api-status{font-size:12px;margin-top:6px;font-weight:500}
+  .api-status--ok{color:var(--success)}
+  .api-status--loading{color:var(--accent)}
+  .api-status--none{color:var(--muted)}
+  .api-status--error{color:var(--danger)}
+  .api-test-btn{
+    padding:10px 16px;font-size:13px;font-weight:600;
+    color:var(--accent);background:var(--accent-light);border:none;
+    border-radius:var(--rs);cursor:pointer;transition:background .15s;
+    white-space:nowrap;
+  }
+  .api-test-btn:hover{background:#e0d9f8}
+  .api-test-btn:disabled{
+    color:var(--muted);background:rgba(174,174,178,0.1);
+    cursor:not-allowed;
+  }
+
+  /* ── Details toggle ── */
+  .detail-toggle{cursor:pointer}
+  .detail-toggle summary{
+    font-size:14px;font-weight:600;color:var(--sub);
+    list-style:none;display:flex;align-items:center;gap:6px;
+    user-select:none;
+  }
+  .detail-toggle summary::before{
+    content:"▶";font-size:10px;color:var(--muted);
+    transition:transform .2s;display:inline-block;
+  }
+  .detail-toggle[open] summary::before{transform:rotate(90deg)}
+  .detail-inner{
+    margin-top:14px;padding:14px 16px;background:var(--bg);
+    border-radius:var(--rs);font-size:14px;line-height:1.65;
+    color:var(--text);white-space:pre-wrap;
+  }
+
+  /* ── Interpretation text ── */
+  .interp-text{
+    font-size:15px;line-height:1.9;color:var(--text);
+    white-space:pre-wrap;
+  }
+
+  /* ── Archive item ── */
+  .archive-item{
+    background:var(--surface);border-radius:var(--r);
+    padding:18px 20px;margin-bottom:12px;
+    box-shadow:var(--shadow);border:0.5px solid var(--border);
+    cursor:pointer;transition:transform .15s,box-shadow .15s;
+    display:flex;justify-content:space-between;align-items:flex-start;
+  }
+  .archive-item:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .archive-meta{display:flex;gap:6px;margin-bottom:8px}
+  .archive-tag{
+    font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;
+  }
+  .archive-tag--model{color:var(--accent);background:var(--accent-light)}
+  .archive-title{
+    font-size:15px;font-weight:600;color:var(--text);
+    margin-bottom:6px;line-height:1.4;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .archive-preview{
+    font-size:13px;color:var(--sub);line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;
+    -webkit-box-orient:vertical;overflow:hidden;
+  }
+  .archive-date{font-size:12px;color:var(--muted);margin-top:8px}
+  .archive-arrow{color:var(--muted);font-size:18px;margin-left:14px;flex-shrink:0;margin-top:4px}
+
+  /* ── Empty state ── */
+  .empty{text-align:center;padding:70px 20px;color:var(--muted)}
+  .empty-icon{font-size:44px;margin-bottom:18px}
+  .empty h3{font-size:16px;font-weight:500;margin-bottom:6px}
+  .empty p{font-size:14px}
+
+  /* ── Loading ── */
+  .loading{text-align:center;padding:50px 20px}
+  .spinner{
+    width:44px;height:44px;border-radius:50%;margin:0 auto 18px;
+    border:3px solid var(--border);border-top-color:var(--accent);
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading p{font-size:15px;font-weight:500;color:var(--sub)}
+
+  /* ── Toast ── */
+  .toast{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+    padding:12px 26px;border-radius:14px;font-size:14px;font-weight:500;
+    font-family:var(--font-body);z-index:100;
+    box-shadow:0 4px 24px rgba(0,0,0,0.12);
+    animation:fadeUp .25s ease-out;white-space:nowrap;
+  }
+  .toast--success{background:var(--success-bg);color:var(--success);border:1px solid rgba(52,199,89,0.15)}
+  .toast--error{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(255,59,48,0.15)}
+  @keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+  /* ── Confirm bar ── */
+  .confirm-bar{display:flex;gap:4px}
+
+  /* ── Result chips ── */
+  .result-meta{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+  .result-date{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="app"></div>
+
+<script>
+(function(){
+  // ── Config ──
+  const MODELS = [
+    { id:"openai/gpt-4o-mini", label:"GPT-4o Mini", desc:"빠르고 경제적인 해석", icon:"⚡" },
+    { id:"mistralai/mistral-small-latest", label:"Mistral Small", desc:"균형 잡힌 분석", icon:"✦" },
+  ];
+
+  const SYSTEM_PROMPT = `당신은 숙련된 타로 리더입니다. 사용자가 타로 스프레드, 카드, 질문, 맥락 등을 자유로운 형식으로 입력합니다. 입력된 내용을 정확히 이해하고 깊이 있는 해석을 제공하세요.
+
+해석 가이드라인:
+- 사용자가 제시한 스프레드 형식(Yes/No, 월별 운세, N카드 스프레드 등)을 존중합니다.
+- 사용자의 질문과 맥락이 있다면 이를 중심으로 해석합니다.
+- 카드 간의 상호 관계와 전체적인 흐름을 분석합니다. 카드를 따로따로 나열하기보다 연결과 흐름 중심으로 해석합니다.
+- 정방향/역방향이 명시된 경우 이를 반영합니다.
+- Yes/No 결과가 명시된 경우 이를 참고하되, 더 깊은 해석을 제공합니다.
+- 실질적이고 구체적인 조언을 포함합니다.
+- 부정적인 카드가 나와도 건설적인 관점을 제시합니다.
+- 한국어로 답변합니다.
+- 마크다운 서식(##, **, - 등)은 사용하지 마세요. 순수한 텍스트로만 답변하되, 단락 구분은 빈 줄로 합니다.`;
+
+  const PLACEHOLDER = `타로 내용을 자유롭게 입력하세요.\n\n예시:\n\n✨ Yes or No 타로 결과\n질문: 내가 프로젝트를 무사히 마감할 수 있을까?\n1. 🏛️ 황제 (정방향) → YES\n2. 💀 죽음 (정방향) → NO\n3. 🦁 힘 (정방향) → YES\n이 타로 결과를 심층 해석해주세요!\n\n또는\n\n## 4카드 스프레드\n1. The Moon  2. The Chariot\n3. 2 of Wands  4. Queen of Swords\n주제는 이번 달 커리어 방향.`;
+
+  const STORAGE_KEY = "tarot_readings_v2";
+  const API_KEY_KEY = "tarot_api_key";
+  const API_TEST_TIMEOUT = 10000; // 10초
+
+  // ── State ──
+  let state = {
+    view: "home",
+    model: MODELS[0].id,
+    input: "",
+    loading: false,
+    result: null,
+    archive: [],
+    detail: null,
+    error: null,
+    delConfirm: null,
+    toast: null,
+    apiKey: "",
+    apiTestLoading: false,
+    apiTestStatus: null,
+    abortController: null,
+  };
+
+  let toastTimer = null;
+  const $ = (sel) => document.querySelector(sel);
+  const app = () => document.getElementById("app");
+
+  // ── Storage ──
+  function loadArchive() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
+  }
+  function saveArchive(arr) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); return true; } catch { return false; }
+  }
+  function loadApiKey() {
+    try { return localStorage.getItem(API_KEY_KEY) || ""; } catch { return ""; }
+  }
+  function saveApiKey(k) {
+    try { localStorage.setItem(API_KEY_KEY, k); } catch {}
+  }
+
+  // ── Init ──
+  state.archive = loadArchive();
+  state.apiKey = loadApiKey();
+
+  // ── Helpers ──
+  function getApiKey() {
+    return state.apiKey.trim();
+  }
+
+  function getModel() {
+    return MODELS.find(m => m.id === state.model);
+  }
+
+  function showToast(msg, type="success") {
+    if (toastTimer) clearTimeout(toastTimer);
+    state.toast = { msg, type };
+    render();
+    toastTimer = setTimeout(() => { state.toast = null; render(); }, 2500);
+  }
+
+  function extractTitle(text) {
+    const lines = text.trim().split("\n").filter(l => l.trim());
+    for (const line of lines.slice(0, 4)) {
+      const cleaned = line.replace(/[#✨🔮⭐💫🌟*_─=]/g, "").trim();
+      if (cleaned.length > 2 && cleaned.length < 60) return cleaned;
+    }
+    return (lines[0] || "").slice(0, 50) || "타로 리딩";
+  }
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString("ko-KR", {
+      year:"numeric", month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"
+    });
+  }
+
+  function esc(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function escAttr(s) {
+    return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function fetchWithTimeout(url, options, timeout = API_TEST_TIMEOUT) {
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), timeout);
+
+    // 외부 signal이 있으면 타임아웃 signal과 결합
+    const signals = [timeoutController.signal];
+    if (options.signal) signals.push(options.signal);
+    const combinedSignal = AbortSignal.any(signals);
+
+    return fetch(url, { ...options, signal: combinedSignal })
+      .then(response => {
+        clearTimeout(timeoutId);
+        return response;
+      })
+      .catch(error => {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          // 사용자가 직접 취소한 경우 → AbortError 그대로 전달
+          if (options.signal && options.signal.aborted) {
+            throw error;
+          }
+          // 타임아웃에 의한 취소
+          throw new Error(`요청 시간 초과 (${timeout / 1000}초)`);
+        }
+        throw error;
+      });
+  }
+
+  // ── API ──
+  async function testApiKey() {
+    const key = getApiKey();
+    if (!key) {
+      state.apiTestStatus = { ok: false, msg: "API 키를 입력해주세요" };
+      render();
+      return;
+    }
+
+    state.apiTestLoading = true;
+    state.apiTestStatus = null;
+    render();
+
+    try {
+      const resp = await fetchWithTimeout("https://openrouter.ai/api/v1/models", {
+        headers: {
+          "Authorization": "Bearer " + key,
+        },
+      }, API_TEST_TIMEOUT);
+
+      if (resp.status === 401 || resp.status === 403) {
+        state.apiTestStatus = { ok: false, msg: "API 키가 유효하지 않습니다" };
+      } else if (resp.ok) {
+        state.apiTestStatus = { ok: true, msg: "API 키가 정상입니다" };
+      } else {
+        state.apiTestStatus = { ok: false, msg: `오류: HTTP ${resp.status}` };
+      }
+    } catch (e) {
+      state.apiTestStatus = { ok: false, msg: e.message || "테스트 실패" };
+    } finally {
+      state.apiTestLoading = false;
+      render();
+    }
+  }
+
+  async function callAPI() {
+    if (!state.input.trim() || state.loading) return;
+    
+    const key = getApiKey();
+    if (!key) {
+      state.error = "API 키를 먼저 입력하고 테스트해주세요.";
+      render();
+      return;
+    }
+
+    state.loading = true;
+    state.error = null;
+    state.abortController = new AbortController();
+    render();
+
+    try {
+      const resp = await fetchWithTimeout("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + key,
+        },
+        body: JSON.stringify({
+          model: state.model,
+          max_tokens: 4000,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: state.input.trim() },
+          ],
+        }),
+        signal: state.abortController.signal,
+      }, 60000); // 60초 타임아웃
+
+      const data = await resp.json();
+      
+      if (data.error) {
+        const errMsg = data.error.message || JSON.stringify(data.error);
+        throw new Error(errMsg);
+      }
+
+      const text = data.choices?.[0]?.message?.content || "";
+      if (!text) throw new Error("빈 응답이 반환되었습니다.");
+
+      const modelInfo = getModel();
+      state.result = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        model: modelInfo?.label || state.model,
+        title: extractTitle(state.input),
+        input: state.input.trim(),
+        interpretation: text,
+      };
+      state.view = "result";
+    } catch (e) {
+      if (e.name === 'AbortError') {
+        state.error = "요청이 취소되었습니다";
+      } else if (e instanceof TypeError && e.message.includes('fetch')) {
+        state.error = "네트워크 연결을 확인해주세요. 인터넷이 끊겼거나 서버에 접속할 수 없습니다.";
+      } else {
+        state.error = e.message || "해석 중 오류가 발생했습니다.";
+      }
+    } finally {
+      state.loading = false;
+      state.abortController = null;
+      render();
+    }
+  }
+
+  function cancelAPI() {
+    if (state.abortController) {
+      state.abortController.abort();
+      // loading=false와 render()는 callAPI의 finally 블록이 처리
+    }
+  }
+
+  function doSave() {
+    if (!state.result) return;
+    state.archive = [state.result, ...state.archive];
+    const ok = saveArchive(state.archive);
+    if (ok) {
+      showToast("보관함에 저장되었습니다");
+      state.result = null;
+      state.input = "";
+      state.view = "home";
+    } else {
+      showToast("저장에 실패했습니다.", "error");
+    }
+    render();
+  }
+
+  function doDelete(id) {
+    state.archive = state.archive.filter(r => r.id !== id);
+    saveArchive(state.archive);
+    state.delConfirm = null;
+    if (state.detail?.id === id) { state.detail = null; state.view = "archive"; }
+    showToast("삭제되었습니다");
+    render();
+  }
+
+  // ── Render ──
+  function render() {
+    const v = state.view;
+    let html = "";
+    if (v === "home") html = renderHome();
+    else if (v === "result") html = renderResult();
+    else if (v === "archive") html = renderArchive();
+    else if (v === "detail") html = renderDetail();
+    html += renderToast();
+    app().innerHTML = html;
+    bindEvents();
+  }
+
+  function renderHeader(title, leftHtml, rightHtml) {
+    return `<div class="header">
+      <div class="header-side">${leftHtml || ""}</div>
+      <h1>${esc(title)}</h1>
+      <div class="header-side">${rightHtml || ""}</div>
+    </div>`;
+  }
+
+  function renderToast() {
+    if (!state.toast) return "";
+    const cls = state.toast.type === "error" ? "toast--error" : "toast--success";
+    const icon = state.toast.type === "error" ? "⚠️" : "✓";
+    return `<div class="toast ${cls}">${icon} ${esc(state.toast.msg)}</div>`;
+  }
+
+  function renderHome() {
+    const archiveCount = state.archive.length;
+    const badgeHtml = archiveCount > 0 ? `<span class="badge">${archiveCount}</span>` : "";
+
+    let html = renderHeader("타로 리더",
+      `<span style="font-size:24px">🔮</span>`,
+      `<button class="nav-btn" data-action="go-archive">보관함${badgeHtml}</button>`
+    );
+
+    // API Key
+    let apiStatusClass = "api-status--none";
+    let apiStatusMsg = "키를 입력하면 자동 저장됩니다";
+    
+    if (state.apiTestStatus) {
+      apiStatusClass = state.apiTestStatus.ok ? "api-status--ok" : "api-status--error";
+      apiStatusMsg = state.apiTestStatus.msg;
+    } else if (getApiKey()) {
+      apiStatusClass = "api-status--none";
+      apiStatusMsg = "테스트 버튼을 클릭해 검증하세요";
+    }
+
+    html += `<div class="card">
+      <span class="label">OpenRouter API Key</span>
+      <div class="api-key-row">
+        <input class="input" type="password" id="apiKeyInput" value="${escAttr(state.apiKey)}" placeholder="sk-or-..." />
+        <button class="api-test-btn" id="apiTestBtn" ${state.apiTestLoading ? "disabled" : ""} data-action="test-api">
+          ${state.apiTestLoading ? "테스트 중..." : "테스트"}
+        </button>
+      </div>
+      <div class="api-status ${apiStatusClass}">
+        ${state.apiTestLoading ? "⏳" : (state.apiTestStatus?.ok ? "✓" : "•")} ${esc(apiStatusMsg)}
+      </div>
+    </div>`;
+
+    // Model
+    const modelChips = MODELS.map(m => {
+      const cls = state.model === m.id ? "chip chip--active" : "chip";
+      return `<button class="${cls}" data-action="set-model" data-model="${m.id}" ${state.loading ? "disabled" : ""}>${m.icon} ${m.label}</button>`;
+    }).join("");
+    const modelDesc = getModel()?.desc || "";
+    html += `<div class="card">
+      <span class="label">AI 모델</span>
+      <div class="chip-group">${modelChips}</div>
+      <div class="chip-desc">${esc(modelDesc)}</div>
+    </div>`;
+
+    // Textarea
+    html += `<div class="card">
+      <span class="label">타로 내용</span>
+      <textarea class="textarea" id="mainInput" placeholder="${escAttr(PLACEHOLDER)}" ${state.loading ? "disabled" : ""}>${esc(state.input)}</textarea>
+      <div class="input-footer"><span>${state.input.length}자</span></div>
+    </div>`;
+
+    // Error
+    if (state.error) {
+      html += `<div class="card" style="background:var(--danger-bg);color:var(--danger);font-size:14px;border-color:rgba(255,59,48,0.12)">
+        ${esc(state.error)}
+      </div>`;
+    }
+
+    // Submit
+    const disabled = !state.input.trim() || state.loading || !getApiKey();
+    const needsTest = getApiKey() && !state.apiTestStatus;
+    const btnText = needsTest ? "✓ API 테스트 후 시작" : (state.loading ? "해석 중..." : "✦ 카드 해석하기");
+    
+    if (state.loading) {
+      html += `<button class="btn-primary" data-action="cancel-api">해석 취소</button>`;
+    } else {
+      html += `<button class="btn-primary" ${disabled ? "disabled" : ""} data-action="submit">${btnText}</button>`;
+    }
+
+    // Loading
+    if (state.loading) {
+      const modelLabel = getModel()?.label || "";
+      html += `<div class="loading">
+        <div class="spinner"></div>
+        <p>${esc(modelLabel)}이(가) 카드를 읽고 있습니다...</p>
+      </div>`;
+    }
+
+    return html;
+  }
+
+  function renderResult() {
+    if (!state.result) return "";
+    const r = state.result;
+
+    let html = renderHeader("리딩 결과",
+      `<button class="nav-btn" data-action="back-home">← 뒤로</button>`,
+      ""
+    );
+
+    html += `<div class="result-meta">
+      <span class="chip chip--active" style="font-size:13px;cursor:default">${esc(r.model)}</span>
+      <span class="result-date">${esc(fmtDate(r.date))}</span>
+    </div>`;
+
+    html += `<details class="card detail-toggle">
+      <summary>입력 내용 보기</summary>
+      <div class="detail-inner">${esc(r.input)}</div>
+    </details>`;
+
+    html += `<div class="card">
+      <span class="label" style="margin-bottom:14px">해석</span>
+      <div class="interp-text">${esc(r.interpretation)}</div>
+    </div>`;
+
+    html += `<div class="btn-row">
+      <button class="btn-primary" data-action="save">보관함에 저장</button>
+      <button class="btn-secondary" data-action="new-reading">새 리딩</button>
+    </div>`;
+
+    return html;
+  }
+
+  function renderArchive() {
+    let html = renderHeader("보관함",
+      `<button class="nav-btn" data-action="back-home">← 뒤로</button>`,
+      ""
+    );
+
+    if (state.archive.length === 0) {
+      html += `<div class="empty">
+        <div class="empty-icon">🗃️</div>
+        <h3>저장된 리딩이 없습니다</h3>
+        <p>타로 해석 후 저장하면 여기에 보관됩니다</p>
+      </div>`;
+    } else {
+      state.archive.forEach(item => {
+        html += `<div class="archive-item" data-action="view-detail" data-id="${item.id}">
+          <div style="flex:1;min-width:0">
+            <div class="archive-meta">
+              <span class="archive-tag archive-tag--model">${esc(item.model)}</span>
+            </div>
+            <div class="archive-title">${esc(item.title)}</div>
+            <div class="archive-preview">${esc(item.interpretation.slice(0, 120))}...</div>
+            <div class="archive-date">${esc(fmtDate(item.date))}</div>
+          </div>
+          <span class="archive-arrow">›</span>
+        </div>`;
+      });
+    }
+
+    return html;
+  }
+
+  function renderDetail() {
+    if (!state.detail) return "";
+    const d = state.detail;
+
+    let rightHtml;
+    if (state.delConfirm === d.id) {
+      rightHtml = `<div class="confirm-bar">
+        <button class="nav-btn nav-btn--danger" data-action="confirm-delete" data-id="${d.id}">삭제</button>
+        <button class="nav-btn" data-action="cancel-delete">취소</button>
+      </div>`;
+    } else {
+      rightHtml = `<button class="nav-btn nav-btn--danger" data-action="ask-delete" data-id="${d.id}">삭제</button>`;
+    }
+
+    let html = renderHeader("리딩 상세",
+      `<button class="nav-btn" data-action="back-archive">← 목록</button>`,
+      rightHtml
+    );
+
+    html += `<div class="result-meta">
+      <span class="chip chip--active" style="font-size:13px;cursor:default">${esc(d.model)}</span>
+      <span class="result-date">${esc(fmtDate(d.date))}</span>
+    </div>`;
+
+    html += `<details class="card detail-toggle">
+      <summary>입력 내용 보기</summary>
+      <div class="detail-inner">${esc(d.input)}</div>
+    </details>`;
+
+    html += `<div class="card">
+      <span class="label" style="margin-bottom:14px">해석</span>
+      <div class="interp-text">${esc(d.interpretation)}</div>
+    </div>`;
+
+    return html;
+  }
+
+  // ── Events ──
+  function bindEvents() {
+    // Delegated click
+    app().onclick = (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const action = btn.dataset.action;
+
+      if (action === "go-archive") { state.view = "archive"; render(); }
+      else if (action === "back-home") { state.view = "home"; state.result = null; render(); }
+      else if (action === "back-archive") { state.view = "archive"; state.delConfirm = null; render(); }
+      else if (action === "set-model") { state.model = btn.dataset.model; render(); }
+      else if (action === "test-api") testApiKey();
+      else if (action === "submit") callAPI();
+      else if (action === "cancel-api") cancelAPI();
+      else if (action === "save") doSave();
+      else if (action === "new-reading") { state.result = null; state.input = ""; state.view = "home"; render(); }
+      else if (action === "view-detail") {
+        const item = state.archive.find(r => r.id === btn.dataset.id);
+        if (item) { state.detail = item; state.view = "detail"; render(); }
+      }
+      else if (action === "ask-delete") { state.delConfirm = btn.dataset.id; render(); }
+      else if (action === "confirm-delete") doDelete(btn.dataset.id);
+      else if (action === "cancel-delete") { state.delConfirm = null; render(); }
+    };
+
+    // Textarea sync
+    const ta = document.getElementById("mainInput");
+    if (ta) {
+      ta.value = state.input;
+      ta.oninput = () => {
+        state.input = ta.value;
+        // Update char count without full re-render
+        const footer = ta.parentElement.querySelector(".input-footer span");
+        if (footer) footer.textContent = state.input.length + "자";
+        // Auto-resize
+        ta.style.height = "auto";
+        ta.style.height = Math.max(200, ta.scrollHeight) + "px";
+      };
+      // Initial resize
+      requestAnimationFrame(() => {
+        ta.style.height = "auto";
+        ta.style.height = Math.max(200, ta.scrollHeight) + "px";
+      });
+    }
+
+    // API Key sync
+    const keyInput = document.getElementById("apiKeyInput");
+    if (keyInput) {
+      keyInput.oninput = () => {
+        state.apiKey = keyInput.value;
+        saveApiKey(state.apiKey);
+        // Reset test status without full re-render (preserves focus)
+        state.apiTestStatus = null;
+        const statusEl = keyInput.closest(".card").querySelector(".api-status");
+        if (statusEl) {
+          statusEl.className = "api-status api-status--none";
+          statusEl.innerHTML = getApiKey()
+            ? "• " + esc("테스트 버튼을 클릭해 검증하세요")
+            : "• " + esc("키를 입력하면 자동 저장됩니다");
+        }
+      };
+    }
+  }
+
+  // ── Go ──
+  render();
+})();
+</script>
+</body>
+</html>
